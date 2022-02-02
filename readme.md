@@ -5,12 +5,10 @@ Based on https://github.com/vegah/serverless-cloudwatch-dashboard, with a number
 
 # Install
 ```
-npm install serverless-cloudwatch-dashboard
+npm install energylinx/cloudwatch-dashboard --save
 ```
-# Usage
-## serverless.yml
-In the serverless.yml file the plugin needs to be added.  
 
+In the serverless.yml file the plugin needs to be added:
 ```yaml
 plugins:
   - energylinx-cloudwatch-dashboard
@@ -22,7 +20,9 @@ Fully supported:
 * Lambda
 * CloudWatch Metric Filters
 * DynamoDB
+* SQS
 
 These have some implementation, but are untested in the Energylinx environment
 * EC2
 * S3
+
