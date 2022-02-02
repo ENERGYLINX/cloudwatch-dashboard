@@ -1,6 +1,7 @@
 
 var Lambda = require('./resources/lambda');
 var MetricFilter = require('./resources/metric-filter');
+var SQS = require('./resources/sqs');
 var Ec2 = require('./resources/ec2');
 var DynamoDb = require('./resources/dynamodb');
 var S3 = require('./resources/s3');
@@ -14,6 +15,7 @@ class EnergylinxCloudwatchDashboardPlugin {
       this.resources = {
         lambda: new Lambda(this, {}),
         metricFilter: new MetricFilter(this, {}),
+        sqs: new SQS(this, {}),
         ec2: new Ec2(this, {}),
         dynamodb: new DynamoDb(this, {}),
         s3: new S3(this, {})
@@ -22,6 +24,7 @@ class EnergylinxCloudwatchDashboardPlugin {
       this.resourcemapping = {
           "AWS::Lambda::Function": this.resources.lambda,
           "AWS::Logs::MetricFilter": this.resources.metricFilter,
+          "AWS::SQS::Queue": this.resources.sqs,
           "AWS::EC2::Instance": this.resources.ec2,
           "AWS::DynamoDB::Table": this.resources.dynamodb,
           "AWS::S3::Bucket": this.resources.s3
