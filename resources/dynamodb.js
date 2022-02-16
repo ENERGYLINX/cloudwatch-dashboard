@@ -2,26 +2,32 @@ class DynamoDb {
     constructor(serverlesscloudwatchdashboard,config) {
         this.scd = serverlesscloudwatchdashboard;
         this.metric_config = config.metrics || [["ConsumedReadCapacityUnits","ConsumedWriteCapacityUnits"], ["SuccessfulRequestLatency"], ["ReadThrottleEvents", "WriteThrottleEvents"]];
-        this.validConfigs = [
-            "ConditionalCheckFailedRequests",
-            "ConsumedReadCapacityUnits",
-            "ConsumedWriteCapacityUnits",
-            "ReadThrottleEvents",
-            "ReturnedBytes",
-            "ReturnedItemCount",
-            "ReturnedRecordsCount",
-            "SuccessfulRequestLatency",
-            "SystemErrors",
-            "TimeToLiveDeletedItemCount",
-            "ThrottledRequests",
-            "UserErrors",
-            "WriteThrottleEvents"
-        ];
+        this.validConfigs = {
+            "ConditionalCheckFailedRequests": {},
+            "ConsumedReadCapacityUnits": {},
+            "ConsumedWriteCapacityUnits": {
+                yAxis: "right"
+            },
+            "ReadThrottleEvents": {},
+            "ReturnedBytes": {},
+            "ReturnedItemCount": {},
+            "ReturnedRecordsCount": {},
+            "SuccessfulRequestLatency": {},
+            "SystemErrors": {},
+            "TimeToLiveDeletedItemCount": {},
+            "ThrottledRequests": {
+                stat: "Sum"
+            },
+            "UserErrors": {},
+            "WriteThrottleEvents": {
+                stat: "Sum"
+            }
+        };
 
     }
     
     validateConfig(configItem) {
-        if (this.validConfigs.indexOf(configItem)>-1)
+        if (configItem in this.validConfigs)
             return true;
         else
             throw new this.scd.serverless.classes.Error(`Error: ${configItem} is not a valid metric for dynamodb`);
@@ -33,23 +39,42 @@ class DynamoDb {
         this.scd.log("Creating widgets for "+name+" "+resource.Properties.TableName);
         var widgets = [];
         this.metric_config.forEach(metric=>{
-            this.validateConfig(metric)
+
+            // Make sure the metrics we're dealing with are arrays
+            let metricData = [];
+            if (!Array.isArray(metric)) {
+                metric = [metric];
+            }
+
+            // Add each metric to this graph
+            for (var i in metric) {
+                this.validateConfig(metric[i]);
+                metricData.push([
+                    "AWS/DynamoDB",
+                    metric[i],
+                    "TableName",
+                    resource.Properties.TableName,
+                    this.validConfigs[metric[i]]
+                ]);
+            }
+            
             widgets.push({
                 shouldBeDelimited: true,
                 value: JSON.stringify({
-                "type": "metric",
-                "properties": {
-                    "metrics": [
-                        ["AWS/DynamoDB",metric,"TableName",resource.Properties.TableName]
-                    ],
-                    "period": 300,
-                    "region": this.scd.options.region,
-                    "title": `${resource.Properties.TableName} ${metric}`
-                }
-            })});
+                    "type": "metric",
+                    "width": 8,
+                    "properties": {
+                        "metrics": metricData,
+                        "period": 60,
+                        "region": this.scd.options.region,
+                        "title": `${resource.Properties.TableName} ${metric}`
+                    }
+                })
+            });
         })
         return widgets;
     }
 }
 
 module.exports = DynamoDb;
+
